@@ -1,1 +1,29 @@
 
+import React, { useMemo, useState } from 'react'
+import { Bell, CalendarDays, CloudSun, Leaf, MapPin, Sprout, Store, ThermometerSun, ShieldCheck } from 'lucide-react'
+
+const CROPS = [
+ {id:'tomato',name:'Домати',greenhouse:{sow:'Януари–Март',transplant:'Март–Април',harvest:'Май–Септември',minTemp:12},outdoor:{sow:'Февруари–Март',transplant:'Април–Май',harvest:'Юни–Септември',minTemp:15},tasks:['Направи разсад','Пикирай','Засади','Следи за мана','Подхранване','Бране']},
+ {id:'pepper',name:'Чушки',greenhouse:{sow:'Януари–Март',transplant:'Април',harvest:'Юни–Септември',minTemp:14},outdoor:{sow:'Февруари–Март',transplant:'Май',harvest:'Юли–Септември',minTemp:16},tasks:['Направи разсад','Засади','Капково','Подхранване','Следи за листни въшки','Бране']},
+ {id:'cucumber',name:'Краставици',greenhouse:{sow:'Февруари–Март',transplant:'Април',harvest:'Май–Август',minTemp:14},outdoor:{sow:'Април',transplant:'Май',harvest:'Юни–Август',minTemp:16},tasks:['Разсад','Засаждане','Опора','Влага','Следи за брашнеста мана','Бране']},
+ {id:'cabbage',name:'Зеле',greenhouse:{sow:'Февруари–Април',transplant:'Април–Май',harvest:'Юли–Октомври',minTemp:8},outdoor:{sow:'Март–Април',transplant:'Април–Юни',harvest:'Юли–Октомври',minTemp:10},tasks:['Разсад','Засаждане','Поливане','Следи за зелев молец','Пръскане при нужда','Бране']}
+]
+const MONTHS=['Ян','Фев','Мар','Апр','Май','Юни','Юли','Авг','Сеп','Окт','Ное','Дек']
+const ACTIVITY={tomato:['Разсад','Разсад','Разсад','Засаждане','Грижа','Бране','Бране','Бране','Бране','','',''],pepper:['Разсад','Разсад','Разсад','Засаждане','Грижа','Бране','Бране','Бране','Бране','','',''],cucumber:['','Разсад','Разсад','Засаждане','Бране','Бране','Бране','Бране','','','',''],cabbage:['','','Разсад','Засаждане','Засаждане','Грижа','Бране','Бране','Бране','Бране','','']}
+const PRODUCTS=[{type:'Тор',title:'Калциев тор за домати',country:'България',paid:true},{type:'Семена',title:'Професионални семена чушки',country:'България',paid:true},{type:'Оранжерия',title:'Тунелна оранжерия 30 m²',country:'България',paid:false}]
+
+function getRecommendation(temp,crop,mode){const min=crop[mode].minTemp;if(temp<min-3)return{cls:'danger',title:'Изчакай',text:`Температурата е ниска за ${crop.name}. Минимумът е около ${min}°C.`};if(temp<min)return{cls:'warn',title:'Внимание',text:'По-добре изчакай 2–3 дни или използвай покритие/оранжерия.'};return{cls:'ok',title:'Подходящо',text:`Условията са подходящи за действие при ${crop.name}.`}}
+
+export default function App(){
+ const [country,setCountry]=useState('България'),[region,setRegion]=useState('Северна България'),[mode,setMode]=useState('outdoor'),[cropId,setCropId]=useState('tomato'),[temp,setTemp]=useState(13)
+ const crop=useMemo(()=>CROPS.find(i=>i.id===cropId),[cropId]), data=crop[mode], rec=getRecommendation(temp,crop,mode)
+ return <main className="page">
+  <section className="hero"><div><div className="brand"><Leaf/>AgroMind MVP</div><h1>AI календар за зеленчуци</h1><p>Първи тестов сайт: култури, сезон, време, напомняния и бъдещ marketplace.</p></div><button className="primary"><Bell size={18}/> Включи напомняния</button></section>
+  <section className="grid two"><div className="card"><h2><MapPin/>Настройки</h2><label>Държава</label><select value={country} onChange={e=>setCountry(e.target.value)}><option>България</option><option>Румъния</option><option>Гърция</option><option>Германия</option><option>Испания</option></select><label>Регион</label><select value={region} onChange={e=>setRegion(e.target.value)}><option>Северна България</option><option>Южна България</option><option>Планински район</option><option>Крайморски район</option></select><label>Производство</label><div className="toggle"><button className={mode==='outdoor'?'active':''} onClick={()=>setMode('outdoor')}>Навън</button><button className={mode==='greenhouse'?'active':''} onClick={()=>setMode('greenhouse')}>Оранжерия</button></div></div>
+  <div className="card"><h2><Sprout/>Култура</h2><select value={cropId} onChange={e=>setCropId(e.target.value)}>{CROPS.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><div className="stats"><div><span>Сеитба / разсад</span><b>{data.sow}</b></div><div><span>Засаждане</span><b>{data.transplant}</b></div><div><span>Бране</span><b>{data.harvest}</b></div></div><div className="temperature"><b><ThermometerSun/> Тестова температура: {temp}°C</b><input type="range" min="0" max="35" value={temp} onChange={e=>setTemp(Number(e.target.value))}/></div><div className={'recommendation '+rec.cls}><b>{rec.title}</b><p>{rec.text}</p></div></div></section>
+  <section className="card"><h2><CalendarDays/>Сезонна схема</h2><div className="months">{MONTHS.map((m,i)=>{const label=ACTIVITY[cropId][i];return <div key={m} className={label?'month activeMonth':'month'}><b>{m}</b><span>{label||'—'}</span></div>})}</div></section>
+  <section className="grid two"><div className="card"><h2><Bell/>Днешни задачи</h2><div className="tasks">{crop.tasks.map(t=><div key={t}>{t}</div>)}</div></div><div className="card"><h2><CloudSun/>Weather AI</h2><p>Следваща версия: реална прогноза, риск от слана, дъжд, влажност и мана.</p><div className="info">Модулът ще мести задачите според времето.</div></div></section>
+  <section className="card"><h2><Store/>Marketplace / реклама</h2><div className="products">{PRODUCTS.map(p=><div className="product" key={p.title}><div><span>{p.type}</span>{p.paid&&<em>Sponsored</em>}</div><b>{p.title}</b><small>{p.country}</small></div>)}</div></section>
+  <section className="footer"><div><h3><ShieldCheck/>Защита</h3><p>Бизнес логиката трябва да бъде в backend.</p></div><div><h3>Монетизация</h3><p>Premium AI, реклама, affiliate линкове, B2B акаунти.</p></div><div><h3>Следващо</h3><p>Login, база данни, реална прогноза, известия, AI чат.</p></div></section>
+ </main>
+}
